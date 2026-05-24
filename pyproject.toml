@@ -1,0 +1,11 @@
+[build-system]
+requires = ["setuptools", "wheel", "torch"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "srs-cuda"
+version = "0.1.0"
+dependencies = ["torch", "torchaudio", "numpy"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
