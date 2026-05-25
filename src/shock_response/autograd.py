@@ -1,5 +1,5 @@
 import torch
-from ._extension import srs_ext
+import srs_ext
 
 
 class Iso_SRS(torch.autograd.Function):
