@@ -70,7 +70,7 @@ You need:
     * Windows: Microsoft Visual Studio Build Tools (MSVC)
     * Linux: gcc / g++
 
-> PyTorch, CUDA Toolkit, GPU driver, and Visual Studio (for Windows) must be compatible.
+PyTorch, CUDA Toolkit, GPU driver, and Visual Studio (for Windows) must be compatible.
 
 I used the following for Windows:
 - Python 3.10
@@ -161,7 +161,4 @@ ___
 ### Windows: `cl.exe not found`
 
 You must install from a:
-
-```bat
-x64 Native Tools Command Prompt for Visual Studio
-```
+`x64 Native Tools Command Prompt for Visual Studio`
