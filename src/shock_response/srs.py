@@ -7,7 +7,13 @@ from .autograd import Iso_SRS
 
 
 class CudaSRS(nn.Module):
-    def __init__(self, freqs: torch.Tensor, damping=0.03, fs=32768):
+    def __init__(
+        self, 
+        freqs: torch.Tensor, 
+        damping: float = 0.03, 
+        fs: int = 32768,
+        pad_scale: float = 3.0
+    ):
         super().__init__()
 
         freqs = freqs.double()
@@ -43,11 +49,17 @@ class CudaSRS(nn.Module):
         ], dim=1)
 
 
+        pad_full = math.ceil(
+            fs / (2.0 * freqs.min().item() * math.sqrt(1.0 - damping**2))
+        )
+
         self.register_buffer("As", As.contiguous())
         self.register_buffer("Bs", Bs.contiguous())
+        self.pad_len = math.ceil(pad_full / pad_scale)
 
-    def forward(self, x):
-        return Iso_SRS.apply(x, self.As, self.Bs)
+    def forward(self, x: torch.Tensor):
+        x_pad = nn.functional.pad(x.squeeze(1), (0, self.pad_len))
+        return Iso_SRS.apply(x_pad, self.As, self.Bs)
     
 
 
@@ -56,7 +68,13 @@ class CudaSRS(nn.Module):
 
 
 class TorchSRS(nn.Module):
-    def __init__(self, freqs: torch.Tensor, damping: float = 0.03, fs: int = 32768):
+    def __init__(
+        self, 
+        freqs: torch.Tensor, 
+        damping: float = 0.03, 
+        fs: int = 32768,
+        pad_scale: float = 3.0
+    ):
         super().__init__()
 
         freqs = freqs.double()
@@ -92,15 +110,21 @@ class TorchSRS(nn.Module):
             -2.0 * exp_A * cos_B,
         ], dim=1)
 
+
+        pad_full = math.ceil(
+            fs / (2.0 * freqs.min().item() * math.sqrt(1.0 - damping**2))
+        )
+
         self.register_buffer("As", As.contiguous())
         self.register_buffer("Bs", Bs.contiguous())
+        self.pad_len = math.ceil(pad_full / pad_scale)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        x = x.double()
-        B, T = x.shape
+        x_pad = nn.functional.pad(x.squeeze(1), (0, self.pad_len)).double()
+        B, T = x_pad.shape
         F = self.As.size(0)
 
         # (B, 1, T) -> (B, F, T)
-        x_f = x.unsqueeze(1).expand(B, F, T).contiguous()
+        x_f = x_pad.unsqueeze(1).expand(B, F, T).contiguous()
 
         return lfilter(x_f, self.As, self.Bs, clamp=False).abs().amax(dim=-1)
