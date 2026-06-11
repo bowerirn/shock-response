@@ -38,15 +38,14 @@ class CudaSRS(nn.Module):
 
         # We don't need the a0 = 1 for the kernel, we can do it implicitly
         As = torch.stack([
-            -2.0 * exp_A * sinB_over_B,
+            -2.0 * exp_A * cos_B,
             exp_2A,
         ], dim=1)
 
-        Bs = torch.stack([
-            1.0 - exp_A * sinB_over_B,
-            2.0 * exp_A * (sinB_over_B - cos_B),
-            -2.0 * exp_A * cos_B,
-        ], dim=1)
+        b0 = 1.0 - exp_A * sinB_over_B
+        b1 = 2.0 * exp_A * (sinB_over_B - cos_B)
+        b2 = exp_2A - exp_A * sinB_over_B
+        Bs = torch.stack([b0, b1, b2], dim=1)
 
 
         pad_full = math.ceil(
@@ -100,15 +99,14 @@ class TorchSRS(nn.Module):
 
         As = torch.stack([
             torch.ones_like(freqs),
-            -2.0 * exp_A * sinB_over_B,
+            -2.0 * exp_A * cos_B,
             exp_2A,
         ], dim=1)
 
-        Bs = torch.stack([
-            1.0 - exp_A * sinB_over_B,
-            2.0 * exp_A * (sinB_over_B - cos_B),
-            -2.0 * exp_A * cos_B,
-        ], dim=1)
+        b0 = 1.0 - exp_A * sinB_over_B
+        b1 = 2.0 * exp_A * (sinB_over_B - cos_B)
+        b2 = exp_2A - exp_A * sinB_over_B
+        Bs = torch.stack([b0, b1, b2], dim=1)
 
 
         pad_full = math.ceil(
